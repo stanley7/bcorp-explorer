@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B Corp Explorer</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#fafaf9;color:#1c1c1a;}
+  *{box-sizing:border-box;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#dcdcd8;border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  textarea{font-family:inherit;}
+  @keyframes blink{0%,100%{opacity:0.2;}50%{opacity:1;}}
+
+  .app{display:flex;height:100vh;overflow:hidden;background:#fafaf9;}
+
+  .sidebar{width:272px;flex-shrink:0;background:#f1f0ec;border-right:1px solid #e4e3de;display:flex;flex-direction:column;}
+  .sidebar.hidden{display:none;}
+  .sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 10px;}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;letter-spacing:-0.01em;}
+  .brand-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#f5f4f0;background:#0E0E0F;font-size:14px;}
+  .collapse-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:6px;color:#8a8983;font-size:14px;}
+  .collapse-btn:hover{background:#e4e3de;color:#1c1c1a;}
+
+  .sidebar-actions{padding:6px 12px 12px;display:flex;flex-direction:column;gap:8px;}
+  .new-chat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border:1px solid #dcdbd5;border-radius:10px;background:#fff;cursor:pointer;font-size:13.5px;font-weight:500;color:#1c1c1a;}
+  .new-chat-btn:hover{border-color:#c9c8c1;box-shadow:0 1px 3px rgba(28,28,26,0.06);}
+  .new-chat-btn span{font-size:15px;line-height:1;color:#4c51c6;}
+
+  .history{flex:1;overflow-y:auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px;}
+  .history-header{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#a3a29b;padding:14px 10px 6px;}
+  .history-item{display:block;width:100%;text-align:left;border:none;cursor:pointer;padding:8px 10px;border-radius:8px;font-size:13.5px;color:#55544f;background:transparent;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .history-item:hover{background:#e4e3de;}
+  .history-item.active{background:#e2e1db;color:#1c1c1a;font-weight:600;}
+
+  .sidebar-footer{border-top:1px solid #e4e3de;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:13px;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#d9a441;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .header{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #eceae5;background:#fafaf9;}
+  .open-sidebar-btn{border:1px solid #e4e3de;background:#fff;cursor:pointer;padding:6px 10px;border-radius:8px;color:#55544f;font-size:13px;display:none;}
+  .open-sidebar-btn.show{display:inline-block;}
+  .model-name{font-size:14px;font-weight:600;}
+
+  .messages-wrap{flex:1;overflow-y:auto;}
+  .empty-state{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:40px 24px;}
+  .empty-title{font-size:28px;font-weight:700;letter-spacing:-0.02em;text-align:center;}
+  .empty-sub{font-size:14.5px;color:#8a8983;text-align:center;}
+  .suggestions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:640px;}
+  .suggestion-btn{border:1px solid #e4e3de;background:#fff;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#55544f;cursor:pointer;text-align:left;max-width:300px;}
+  .suggestion-btn:hover{border-color:#c9c8c1;box-shadow:0 2px 8px rgba(28,28,26,0.06);}
+
+  .messages{max-width:760px;margin:0 auto;padding:28px 24px 12px;display:flex;flex-direction:column;gap:26px;}
+  .msg-row{display:flex;gap:14px;}
+  .msg-row.user{flex-direction:row-reverse;}
+  .msg-label{flex-shrink:0;font-weight:700;font-size:13px;letter-spacing:-0.01em;padding-top:6px;white-space:nowrap;}
+  .msg-assistant-text{font-size:14.5px;line-height:1.65;padding-top:4px;white-space:pre-wrap;}
+  .msg-user-bubble{background:#eceae5;border-radius:16px 16px 4px 16px;padding:11px 16px;font-size:14.5px;line-height:1.6;max-width:75%;white-space:pre-wrap;}
+
+  .typing{display:flex;gap:14px;}
+  .typing-dots{display:flex;gap:5px;align-items:center;padding-top:12px;}
+  .typing-dots span{width:6px;height:6px;border-radius:50%;background:#8a8983;animation:blink 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:0.2s;}
+  .typing-dots span:nth-child(3){animation-delay:0.4s;}
+
+  .composer{padding:12px 24px 18px;background:#fafaf9;}
+  .composer-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
+  .input-box{display:flex;align-items:flex-end;gap:8px;border:1px solid #e0dfd9;border-radius:16px;background:#fff;padding:10px 10px 10px 16px;box-shadow:0 2px 10px rgba(28,28,26,0.05);}
+  .input-box textarea{flex:1;border:none;outline:none;resize:none;font-size:14.5px;line-height:1.5;background:transparent;color:#1c1c1a;padding:6px 0;max-height:160px;}
+  .send-btn{width:34px;height:34px;flex-shrink:0;border:none;border-radius:10px;background:#c9c8c1;color:#fff;cursor:pointer;font-size:15px;}
+  .send-btn.active{background:#4c51c6;}
+  .footnote{text-align:center;font-size:11.5px;color:#a3a29b;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <div class="brand-icon">✦</div>
+        <span>B Corp Explorer</span>
+      </div>
+      <button class="collapse-btn" id="collapseBtn" title="Collapse sidebar">⟨</button>
+    </div>
+    <div class="sidebar-actions">
+      <button class="new-chat-btn" id="newChatBtn"><span>+</span> New chat</button>
+    </div>
+    <nav class="history" id="history"></nav>
+    <div class="sidebar-footer">
+      <div class="avatar">Y</div>
+      <div>You</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="open-sidebar-btn" id="openSidebarBtn" title="Open sidebar">⟩</button>
+      <div class="model-name">Llama-3.3-70B</div>
+    </header>
+
+    <div class="messages-wrap" id="messagesWrap">
+      <div class="empty-state" id="emptyState">
+        <div>
+          <div class="empty-title">What can I help with?</div>
+          <div class="empty-sub">Ask anything about B Corp certified companies.</div>
+        </div>
+        <div class="suggestions">
+          <button class="suggestion-btn" data-text="Which companies are in Canada?">Which companies are in Canada?</button>
+          <button class="suggestion-btn" data-text="What companies are in the food and beverage sector?">What companies are in the food and beverage sector?</button>
+          <button class="suggestion-btn" data-text="Which company has the highest B Impact Score?">Which company has the highest B Impact Score?</button>
+          <button class="suggestion-btn" data-text="Tell me about a company's governance score.">Tell me about a company's governance score.</button>
+        </div>
+      </div>
+      <div class="messages" id="messages" style="display:none;"></div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-inner">
+        <div class="input-box">
+          <textarea id="draftInput" placeholder="Message B Corp Explorer…" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn" title="Send">↑</button>
+        </div>
+        <div class="footnote">B Corp Explorer can make mistakes. Check important information.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// >>> PASTE YOUR COLAB NGROK TUNNEL URL HERE (no trailing slash) <<<
+// e.g. 'https://xxxx.ngrok-free.app'
+const API_URL = 'https://nonfelicitous-reasonedly-cadence.ngrok-free.dev';
+
+// ---- state ----
+let chats = [
+  { id: 1, title: 'New chat', messages: [] }
+];
+let activeId = 1;
+let typing = false;
+
+// ---- elements ----
+const sidebar = document.getElementById('sidebar');
+const collapseBtn = document.getElementById('collapseBtn');
+const openSidebarBtn = document.getElementById('openSidebarBtn');
+const newChatBtn = document.getElementById('newChatBtn');
+const historyEl = document.getElementById('history');
+const messagesWrap = document.getElementById('messagesWrap');
+const emptyState = document.getElementById('emptyState');
+const messagesEl = document.getElementById('messages');
+const draftInput = document.getElementById('draftInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function activeChat() {
+  return chats.find(c => c.id === activeId);
+}
+
+function renderHistory() {
+  historyEl.innerHTML = '';
+  chats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'history-item' + (c.id === activeId ? ' active' : '');
+    btn.textContent = c.title;
+    btn.onclick = () => { activeId = c.id; typing = false; render(); };
+    historyEl.appendChild(btn);
+  });
+}
+
+function renderMessages() {
+  const chat = activeChat();
+  const hasContent = chat.messages.length > 0 || typing;
+
+  emptyState.style.display = hasContent ? 'none' : 'flex';
+  messagesEl.style.display = hasContent ? 'flex' : 'none';
+  messagesEl.innerHTML = '';
+
+  chat.messages.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'msg-row ' + (m.role === 'user' ? 'user' : 'assistant');
+    if (m.role === 'assistant') {
+      const label = document.createElement('div');
+      label.className = 'msg-label';
+      label.textContent = 'Llama-3.3-70B';
+      const text = document.createElement('div');
+      text.className = 'msg-assistant-text';
+      text.textContent = m.text;
+      row.appendChild(label);
+      row.appendChild(text);
+    } else {
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-user-bubble';
+      bubble.textContent = m.text;
+      row.appendChild(bubble);
+    }
+    messagesEl.appendChild(row);
+  });
+
+  if (typing) {
+    const row = document.createElement('div');
+    row.className = 'typing';
+    row.innerHTML = '<div class="msg-label">Llama-3.3-70B</div><div class="typing-dots"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(row);
+  }
+
+  messagesWrap.scrollTop = messagesWrap.scrollHeight;
+}
+
+function renderSendState() {
+  sendBtn.classList.toggle('active', draftInput.value.trim().length > 0 && !typing);
+}
+
+function render() {
+  renderHistory();
+  renderMessages();
+  renderSendState();
+}
+
+async function sendMessage(text) {
+  const t = text.trim();
+  if (!t || typing) return;
+
+  const chat = activeChat();
+  chat.messages.push({ role: 'user', text: t });
+  if (chat.messages.length === 1) {
+    chat.title = t.length > 34 ? t.slice(0, 34) + '…' : t;
+  }
+  draftInput.value = '';
+  typing = true;
+  render();
+
+  let reply;
+  try {
+    const history = chat.messages.map(m => ({ role: m.role, content: m.text }));
+    const res = await fetch(API_URL + '/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: JSON.stringify({ messages: history }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    reply = data.reply;
+  } catch (err) {
+    reply = '⚠️ Could not reach the model backend (' + err.message + '). Check that your Colab cell is running and API_URL points to the current tunnel URL.';
+  }
+
+  typing = false;
+  chat.messages.push({ role: 'assistant', text: reply });
+  render();
+}
+
+// ---- events ----
+collapseBtn.onclick = () => {
+  sidebar.classList.add('hidden');
+  openSidebarBtn.classList.add('show');
+};
+openSidebarBtn.onclick = () => {
+  sidebar.classList.remove('hidden');
+  openSidebarBtn.classList.remove('show');
+};
+newChatBtn.onclick = () => {
+  const id = Math.max(...chats.map(c => c.id)) + 1;
+  chats.unshift({ id, title: 'New chat', messages: [] });
+  activeId = id;
+  typing = false;
+  draftInput.value = '';
+  render();
+  draftInput.focus();
+};
+draftInput.addEventListener('input', renderSendState);
+draftInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(draftInput.value);
+  }
+});
+sendBtn.onclick = () => sendMessage(draftInput.value);
+document.querySelectorAll('.suggestion-btn').forEach(btn => {
+  btn.onclick = () => sendMessage(btn.dataset.text);
+});
+
+render();
+</script>
+</body>
+</html>
