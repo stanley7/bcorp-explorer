@@ -77,7 +77,7 @@ If your file lives somewhere else, update the `json_path` variable in cell 2 of 
 The backend only works while the Colab notebook is actively connected and running:
 
 - Free Colab sessions disconnect after ~90 minutes idle, and are capped at ~12 hours regardless of activity.
-- Every time you restart the notebook, ngrok issues a **new** URL — repeat backend step 7 and update `API_URL` in the frontend again.
+- Every time you restart the notebook, ngrok issues a **new** URL - repeat backend step 7 and update `API_URL` in the frontend again.
 - For something that needs to stay reachable without babysitting a notebook, move the FastAPI backend to a persistent host (Render, Railway, Fly.io, etc.) instead of Colab + ngrok.
 
 ## Notes / limitations
