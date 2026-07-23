@@ -8,9 +8,9 @@ A retrieval-augmented chat assistant for exploring B Corp certified companies. I
 
 The project has two parts:
 
-**Backend** — a Retrieval-Augmented Generation (RAG) pipeline that runs in Google Colab. It embeds a dataset of B Corp company profiles into a Chroma vector store, retrieves the most relevant profiles for a given question, and passes them to Groq's Llama 3.3 70B model to generate an answer. It's exposed to the web as a FastAPI server, tunneled through ngrok, and remembers recent conversation turns so follow-up questions work.
+**Backend** - a Retrieval-Augmented Generation (RAG) pipeline that runs in Google Colab. It embeds a dataset of B Corp company profiles into a Chroma vector store, retrieves the most relevant profiles for a given question, and passes them to Groq's Llama 3.3 70B model to generate an answer. It's exposed to the web as a FastAPI server, tunneled through ngrok, and remembers recent conversation turns so follow-up questions work.
 
-**Frontend** — a standalone HTML/CSS/JS chat interface (no build step, no framework) that talks to the backend over a simple `/chat` API. It can be opened directly in a browser or deployed as a static site (e.g. on Vercel).
+**Frontend** - a standalone HTML/CSS/JS chat interface (no build step, no framework) that talks to the backend over a simple `/chat` API. It can be opened directly in a browser or deployed as a static site (e.g. on Vercel).
 
 ```
 [ Browser / Vercel-hosted HTML ]
