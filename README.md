@@ -46,19 +46,19 @@ The chat assistant answers questions using a single JSON file, `bcorp_extracted.
 /content/drive/MyDrive/bcorp_extracted.json
 ```
 
-If your file lives somewhere else, update the `json_path` variable in cell 2 of the backend script to match. The notebook loads this JSON, wraps each company record in a LangChain `Document`, and embeds it into the vector store — it does not scrape or extract the data itself, so you'll need `bcorp_extracted.json` already prepared before running the backend.
+If your file lives somewhere else, update the `json_path` variable in cell 2 of the backend script to match. The notebook loads this JSON, wraps each company record in a LangChain `Document`, and embeds it into the vector store, it does not scrape or extract the data itself, so you'll need `bcorp_extracted.json` already prepared before running the backend.
 
 ## Setup
 
 ### 1. Backend (Google Colab)
 
 1. Open a new Colab notebook and paste in the backend script cell by cell, in order.
-2. **Cell 1** — install dependencies. Uncomment the `!pip install` line and run it.
+2. **Cell 1** - install dependencies. Uncomment the `!pip install` line and run it.
 3. **Add your Groq API key as a Colab secret** — click the key icon in the left sidebar, add a new secret named `groq`, and paste your Groq API key as the value. (Get a key at [console.groq.com](https://console.groq.com).)
-4. **Cell 2** — mounts your Google Drive and loads `bcorp_extracted.json`. Approve the Drive access prompt when it appears.
-5. **Cell 3** — builds the Chroma vector store from the loaded documents. This can take a minute or two depending on dataset size.
-6. **Cell 4** — builds the RAG chain (retriever + Groq LLM, with chat-history-aware retrieval for follow-up questions).
-7. **Cell 5** — starts the FastAPI server and opens an ngrok tunnel.
+4. **Cell 2** - mounts your Google Drive and loads `bcorp_extracted.json`. Approve the Drive access prompt when it appears.
+5. **Cell 3** - builds the Chroma vector store from the loaded documents. This can take a minute or two depending on dataset size.
+6. **Cell 4** - builds the RAG chain (retriever + Groq LLM, with chat-history-aware retrieval for follow-up questions).
+7. **Cell 5** - starts the FastAPI server and opens an ngrok tunnel.
    - Before running, replace `"YOUR_NGROK_AUTHTOKEN"` with your own token from [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken).
    - Once it runs, it prints a public URL like `https://xxxx.ngrok-free.app` — copy this.
 
